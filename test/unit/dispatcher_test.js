@@ -1,5 +1,5 @@
 import {Dispatcher, Store} from "../../src/phlux"
-import {assert} from "chai"
+import assert from "assert"
 
 
 describe("Dispatcher", function(){
@@ -96,16 +96,16 @@ describe("Dispatcher", function(){
     // errors
     // ===============
 
-    assert.throw(() => {
+    assert.throws(() => {
       dispatcher.dispatch("trigger:circular", {})
     }, /circular dependency detected/)
 
-    assert.throw(() => {
+    assert.throws(() => {
       dispatcher.dispatch("trigger-not-found", {})
     }, /No registration found/)
 
     assert(dispatcher.unregister(store1.id))
-    assert.throw(() => {
+    assert.throws(() => {
       dispatcher.unregister(store1.id)
     }, /No registration found/)
   })
