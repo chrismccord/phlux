@@ -5,6 +5,7 @@ const del        = require('del')
 const path       = require('path')
 const esperanto  = require('esperanto')
 const browserify = require('browserify')
+const to5ify     = require("6to5ify")
 const source     = require('vinyl-source-stream')
 const config     = require('./package.json').buildOpts
 
@@ -61,17 +62,13 @@ gulp.task('compile-browser-script', function() {
 })
 
 // Bundle our app for our unit tests
-gulp.task('browserify', ['compile-browser-script'], function() {
-  var bundleStream = browserify(['./test/setup/browserify.js']).bundle()
-  return bundleStream
-    .on('error', function(err){
-      console.log(err.message)
-      this.emit('end')
-    })
-    .pipe($.plumber())
-    .pipe(source('./tmp/__spec-build.js'))
-    .pipe(gulp.dest(''))
-    .pipe($.livereload())
+gulp.task('browserify', [], function() {
+  browserify({ debug: true })
+   .transform(to5ify)
+   .require("./src/phlux.js", { entry: true })
+   .bundle()
+   .on("error", function (err) { console.log("Error : " + err.message) })
+   .pipe(fs.createWriteStream("bundle.js"))
 })
 
 

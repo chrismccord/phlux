@@ -2,6 +2,8 @@ export class Store {
   constructor(){
     this.currentAction = null
     this.currentActionHandled = false
+    this.listeners = {}
+    this.currentListenId = 0
   }
 
   register(dispatcher){ this.dispatcher = dispatcher
@@ -26,7 +28,15 @@ export class Store {
 
   isPending(){ return this.currentAction !== null }
 
-  listen(callback){ listeners.push(callback) }
+  on(ev, context, callback){
+    if(!context.__listenId){ context.__listenId = (this.currentListenId += 1).toString() }
+    if(!this.listeners[ev]){ this.listeners[ev] = [] }
+    this.listeners[ev].push({callback: callback, id: context.__listenId})
+  }
+  off(ev, context){
+    this.listeners[ev] = this.listeners[ev].filter( ({cb, id}) => id != context.__listenId )
+  }
+  emit(ev){ (this.listeners[ev] || []).forEach( ({callback, id}) => callback() ) }
 }
 
 export class Dispatcher {
@@ -97,3 +107,4 @@ export class Dispatcher {
     })
   }
 }
+if(typeof(window) === "object"){ window.Phlux = exports }

@@ -1,8 +1,8 @@
-import {Dispatcher, Store} from "../../src/index"
+import {Dispatcher, Store} from "../../src/phlux"
 import {assert} from "chai"
 
 
-describe("Dispatcher", () => {
+describe("Dispatcher", function(){
 
   it("handles registrations as Store callbacks with nested dispatches", () => {
     let dispatcher = new Dispatcher()
@@ -47,7 +47,7 @@ describe("Dispatcher", () => {
       {action: 'some:other:action', name: 'Store2'}], actionSequence)
   })
 
-  it("awaits stores", () => {
+  it("awaits stores", function(){
     let dispatcher = new Dispatcher()
     var actionSequence = []
     class Store1 extends Store {
@@ -108,5 +108,26 @@ describe("Dispatcher", () => {
     assert.throw(() => {
       dispatcher.unregister(store1.id)
     }, /No registration found/)
+  })
+
+  it("can emit events to store listeners", function(){
+    class StoreEmitter extends Store {
+      handleSomeAction(payload){ store1Called = true }
+      handleSomeOtherAction(){ nestedDispatchCalled++ }
+    }
+    var changeEmitted = 0
+    var changeEmitted2 = 0
+    let store = new StoreEmitter
+    store.on("changed", this, () => { changeEmitted++ })
+    store.on("changed2", this, () => { changeEmitted2++ })
+    store.emit("changed")
+    assert.equal(1, changeEmitted)
+    assert.equal(0, changeEmitted2)
+    store.emit("changed2")
+    assert.equal(1, changeEmitted2)
+    assert.equal(1, changeEmitted)
+    store.off("changed", this)
+    store.emit("changed")
+    assert.equal(1, changeEmitted)
   })
 })
